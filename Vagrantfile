@@ -1,16 +1,15 @@
 # ======================================================================
-# 🚀 Vagrantfile | VMware Fusion (Reusable & Scalable)
+# 🚀 Vagrantfile | Virtual Box (Reusable & Scalable)
 # Author : Syed Dadapeer
 # Purpose: Multi-VM lab for DevOps / Cloud practice (Local Setup)
-# Note   : Requires 'vagrant-disksize' & 'vagrant_vmware_desktop' plugin
+# Note   : Requires 'vagrant-disksize' plugin
 #          Install via: vagrant plugin install vagrant-disksize
-#                       vagrant plugin install vagrant_vmware_desktop
 # ======================================================================
 
 # ----------------------------------------------------------------------
 # 🔧 DEFAULT PROVIDER
 # ----------------------------------------------------------------------
-ENV["VAGRANT_DEFAULT_PROVIDER"] = "vmware_desktop"
+ENV["VAGRANT_DEFAULT_PROVIDER"] = "virtualbox"
 
 Vagrant.configure("2") do |config|
 
@@ -24,14 +23,24 @@ Vagrant.configure("2") do |config|
   VM_NAME = "server"                # Base name for the servers
   SSH_USER   = "ubuntu"             # SSH Username
   SSH_PASS   = "1234"               # SSH Password
-  BASE_BOX  = "bento/ubuntu-24.04"  # Base box to use
+  BASE_BOX  = "ubuntu-server24/ubuntu_24.04.02"      # Base box to use
   HOST_FILE = "/vagrant/hosts.yaml" # File to store IP addresses
 
   # ===================================================================== 
   # 📦 BASE BOX
   # =====================================================================
   config.vm.box = BASE_BOX
-  config.vm.box_check_update = false
+  config.vm.box_check_update = true # Check for box updates on 'vagrant up'
+
+  # vagrant-vbguest plugin configuration (if installed)
+  if Vagrant.has_plugin?("vagrant-vbguest")
+    config.vbguest.auto_update = false
+    config.vbguest.no_install  = true
+  end
+
+  unless Vagrant.has_plugin?("vagrant-disksize")
+    raise 'Please install plugin: vagrant plugin install vagrant-disksize'
+  end
 
   # ======================================================================
   # 🔁 LOOP TO CREATE SERVERS
@@ -41,42 +50,29 @@ Vagrant.configure("2") do |config|
       node.vm.hostname = "#{VM_NAME}-#{i}"         # 🖥 HOSTNAME
 
       # 🌐 Bridged Network (Automatic)
-      node.vm.network "public_network", bridge: "Automatic"
+      node.vm.network "public_network", bridge: "en0: Wi-Fi"
 
-      # 💽 Disk Resize (requires vagrant-disksize plugin)
+      # 💽 STORAGE (requires vagrant-disksize plugin)
       node.disksize.size = "#{VM_DISK}GB"
 
       # =================================================================== 
-      # 🖥️ VMware Fusion Provider
+      # 🖥️ VirtualBox Provider
       # ===================================================================
-      node.vm.provider "vmware_desktop" do |v|
-        v.vmx["memsize"]  = VM_MEMORY.to_s        # RAM in MB
-        v.vmx["numvcpus"] = VM_CPU.to_s           # CPU cores
-        v.vmx["displayName"] = "#{VM_NAME}-#{i}"
-        v.vmx["scsi0:0.fileSize"] = "#{VM_DISK}GB"
-        # DISK – FORCE SIZE AT VMX LEVEL
-        v.vmx["scsi0.present"] = "TRUE"
-        v.vmx["scsi0.virtualDev"] = "lsilogic"
+      node.vm.provider "virtualbox" do |vb|
+        vb.name = "#{VM_NAME}-#{i}"   # VM Name in VirtualBox
+        vb.memory = VM_MEMORY         # RAM in MB
+        vb.cpus = VM_CPU              # CPU cores
 
-        v.vmx["scsi0:0.fileName"] = "#{VM_NAME}-#{i}.vmdk"
-        v.vmx["scsi0:0.redo"] = ""
-        v.vmx["scsi0:0.mode"] = "persistent"
-        v.vmx["scsi0:0.deviceType"] = "scsi-hardDisk"
-
-        # 🚫 Disable extra disks
-        v.vmx["scsi0:1.present"] = "FALSE"
-        v.vmx["scsi0:2.present"] = "FALSE"
-
-        # ✅ Force exact size
-        v.vmx["disk.enableUUID"] = "TRUE"
-
-        # REMOVE NAT COMPLETELY
-        v.vmx["ethernet0.present"] = "FALSE"
-
-        # FORCE SINGLE BRIDGED ADAPTER
-        v.vmx["ethernet1.present"]        = "TRUE"
-        v.vmx["ethernet1.connectionType"] = "bridged"
-        v.vmx["ethernet1.addressType"]    = "generated"
+        # Optional but recommended VirtualBox optimizations
+        vb.customize ["modifyvm", :id, "--ioapic", "on"]
+        vb.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
+        vb.customize ["modifyvm", :id, "--accelerate3d", "off"]
+        
+        # Disable unnecessary features
+        vb.customize ["modifyvm", :id, "--biosbootmenu", "disabled"]
+        vb.customize ["modifyvm", :id, "--audio", "none"]
+        vb.customize ["modifyvm", :id, "--usb", "off"]
+        
       end
 
       # =====================================================================
@@ -105,10 +101,10 @@ Vagrant.configure("2") do |config|
         sudo systemctl start ssh
 
         # 🔐 Enable SSH password auth
-        #echo "🔐 Configuring SSH to allow password authentication..."
-        #sudo sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
-        #sudo sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
-        #sudo systemctl restart ssh
+        echo "🔐 Configuring SSH to allow password authentication..."
+        sudo sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+        sudo sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+        sudo systemctl restart ssh
 
         # 🔑 Passwordless SSH for ubuntu
         echo "🔑 Setting up passwordless SSH for #{SSH_USER}..."
@@ -121,10 +117,9 @@ Vagrant.configure("2") do |config|
         # Write host info to YAML file
         echo "📝 Writing host info to #{HOST_FILE}..."
         echo "  - hostname: $(hostname)" >> #{HOST_FILE}
-        echo "    ip: $(hostname -I | awk '{print $1}')" >> #{HOST_FILE}
-
         # 🌐 Capture IP
-        IP_ADDR=$(ip -4 addr show | grep inet | grep -v 127.0.0.1 | awk '{print $2}' | cut -d/ -f1 | head -n1)
+        IP_ADDR=$(ip -4 addr | grep 192.168 | awk '{print $2}' | cut -d/ -f1)
+        echo "    ip: $IP_ADDR" >> #{HOST_FILE}
         
         echo "✅ #{node.vm.hostname} ready with IP: $IP_ADDR"
 

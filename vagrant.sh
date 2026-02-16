@@ -6,8 +6,6 @@
 # Author: Syed Dadapeer
 # ======================================================================
 
-set -e
-
 # Define host file path
 HOST_FILE="./hosts.yaml"
 
