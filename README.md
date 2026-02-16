@@ -30,7 +30,6 @@
 * [ Cleanup](#-cleanup)
 * [ Troubleshooting](#-troubleshooting)
 * [ Contributing](#-contributing)
-* [ License](#-license)
 
 ---
 
@@ -279,12 +278,6 @@ Steps:
 2. Create feature branch
 3. Commit changes
 4. Open Pull Request
-
----
-
-## 📜 License
-
-MIT License — Free to use, modify, and distribute.
 
 ---
 
