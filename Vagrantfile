@@ -67,6 +67,7 @@ Vagrant.configure("2") do |config|
         vb.customize ["modifyvm", :id, "--ioapic", "on"]
         vb.customize ["modifyvm", :id, "--graphicscontroller", "vmsvga"]
         vb.customize ["modifyvm", :id, "--accelerate3d", "off"]
+        vb.customize ["modifyvm", :id, "--macaddress1", "auto"]
         
         # Disable unnecessary features
         vb.customize ["modifyvm", :id, "--biosbootmenu", "disabled"]
