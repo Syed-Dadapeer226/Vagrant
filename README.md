@@ -7,6 +7,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Build-Passing-brightgreen" />
+  <img src="https://img.shields.io/badge/Version-1.2.0-blue" />
   <img src="https://img.shields.io/badge/Platform-Vagrant-blue" />
   <img src="https://img.shields.io/badge/Providers-VirtualBox%20%7C%20VMware-orange" />
   <img src="https://img.shields.io/badge/OS-Ubuntu-E95420" />
