@@ -1,0 +1,126 @@
+# ======================================================================
+# 🚀 Vagrantfile | VMware Fusion (Reusable & Scalable)
+# Author : Syed Dadapeer
+# Purpose: Multi-VM lab for DevOps / Cloud practice (Local Setup)
+# Provider: VMware Fusion
+# ======================================================================
+
+# ----------------------------------------------------------------------
+# 🔧 DEFAULT PROVIDER
+# ----------------------------------------------------------------------
+ENV["VAGRANT_DEFAULT_PROVIDER"] = "vmware_desktop"
+
+Vagrant.configure("2") do |config|
+
+  # ===================================================================
+  # 🔧 GLOBAL VARIABLES (EDIT ONLY HERE)
+  # =================================================================== 
+  VM_COUNT  = 2                           # Number of servers to create
+  VM_MEMORY = 4096                        # RAM in MB (GB)
+  VM_CPU    = 2                           # Number of CPU cores
+  VM_DISK   = 25                          # Disk in GB
+  VM_NAME   = "server"                    # Base name for the servers
+  SSH_USER  = "ubuntu"                    # SSH Username
+  SSH_PASS  = "1234"                      # SSH Password
+  BASE_BOX  = "politessebaume0r/ubuntu_server_24_04" # Base box to use
+  HOST_FILE = "/vagrant/hosts.yaml"       # File to store IP addresses
+
+  # ===================================================================== 
+  # 📦 BASE BOX
+  # =====================================================================
+  config.vm.box = BASE_BOX
+  config.vm.box_check_update = true # Check for box updates on 'vagrant up'
+
+  # ======================================================================
+  # 🔁 LOOP TO CREATE SERVERS
+  # ======================================================================
+  (1..VM_COUNT).each do |i|
+    config.vm.define "#{VM_NAME}-#{i}" do |node|
+      node.vm.hostname = "#{VM_NAME}-#{i}"         # 🖥 HOSTNAME
+
+      # 🌐 Bridged Network (Automatic)
+      node.vm.network "public_network", bridge: "Auto-detect" 
+
+      # 💽 STORAGE (requires vagrant-disksize plugin)
+      node.disksize.size = "#{VM_DISK}GB"
+
+      # =================================================================== 
+      # 🖥️ VMware Desktop Provider
+      # ===================================================================
+      node.vm.provider "vmware_desktop" do |vm|
+        vm.vmx["displayName"] = "#{VM_NAME}-#{i}"  # Friendly name in VMware UI
+        vm.vmx["memsize"]     = VM_MEMORY.to_s     # RAM in MB
+        vm.vmx["numvcpus"]    = VM_CPU.to_s        # CPU count
+
+        # Recommended VMware optimizations
+        vm.vmx["tools.syncTime"] = "TRUE"
+        vm.vmx["powerType.powerOff"] = "soft"
+        vm.vmx["powerType.reset"] = "soft"
+        vm.vmx["powerType.suspend"] = "soft"
+        
+      end
+
+      # =====================================================================
+      # 📦 PROVISIONING
+      # =====================================================================
+      node.vm.provision "shell", inline: <<-SHELL
+        echo "🚀 Provisioning #{node.vm.hostname}..."
+
+        # Set locale (fixes potential UTF-8 issues)
+        sudo locale-gen en_US.UTF-8
+        sudo update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+
+        # 👤 Create ubuntu user if not exists
+        echo "👤 Setting up user #{SSH_USER}..."
+        if ! id "#{SSH_USER}" &>/dev/null; then
+          sudo useradd -m -s /bin/bash #{SSH_USER}
+          echo "#{SSH_USER}:#{SSH_PASS}" | sudo chpasswd
+          sudo usermod -aG sudo "#{SSH_USER}"
+        fi
+
+        # Update & install packages
+        echo "🔧 Updating system..."
+        sudo apt-get update -y
+
+        echo "📦 Installing packages..."
+        sudo apt-get install -y openssh-server curl vim git net-tools
+
+        echo "🔐 Enabling SSH..."
+        sudo systemctl enable ssh
+        sudo systemctl start ssh
+
+        # 🔐 Enable SSH password auth
+        echo "🔐 Configuring SSH to allow password authentication..."
+        sudo sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+        sudo sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+        sudo systemctl restart ssh
+
+        # 🔑 Passwordless SSH for ubuntu
+        echo "🔑 Setting up passwordless SSH for #{SSH_USER}..."
+        sudo -u "#{SSH_USER}" mkdir -p /home/"#{SSH_USER}"/.ssh
+        sudo -u "#{SSH_USER}" ssh-keygen -t rsa -b 4096 -N "" -f /home/"#{SSH_USER}"/.ssh/id_rsa || true
+        sudo cat /home/"#{SSH_USER}"/.ssh/id_rsa.pub | sudo tee -a /home/"#{SSH_USER}"/.ssh/authorized_keys
+        sudo chmod 600 /home/"#{SSH_USER}"/.ssh/authorized_keys
+        sudo chown -R "#{SSH_USER}:#{SSH_USER}" /home/"#{SSH_USER}"/.ssh
+
+        # 🛡️ Allow passwordless sudo for vagrant
+        echo 'vagrant ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/vagrant
+        
+        # Write host info to YAML file
+        echo "📝 Writing host info to #{HOST_FILE}..."
+        echo "  - hostname: $(hostname)" >> #{HOST_FILE}
+        # 🌐 Capture IP
+        IP_ADDR=$(ip -4 -o addr show ens160 | awk '{print $4}' | cut -d/ -f1)
+        echo "    ip: $IP_ADDR" >> #{HOST_FILE}
+        
+        echo "✅ #{node.vm.hostname} ready with IP: $IP_ADDR"
+
+        echo "✅ Provisioning completed on #{node.vm.hostname}"
+
+      SHELL
+
+    end
+  end
+
+end
+
