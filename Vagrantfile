@@ -16,15 +16,15 @@ Vagrant.configure("2") do |config|
   # ===================================================================
   # 🔧 GLOBAL VARIABLES (EDIT ONLY HERE)
   # =================================================================== 
-  VM_COUNT   = 2                    # Number of servers to create
-  VM_MEMORY = 4096                  # RAM in MB (GB)
+  VM_COUNT  = 2                               # Number of servers to create
+  VM_MEMORY = 4096                            # RAM in MB (GB)
   VM_CPU    = 2
-  VM_DISK   = 25                    # Disk in GB
-  VM_NAME = "server"                # Base name for the servers
-  SSH_USER   = "ubuntu"             # SSH Username
-  SSH_PASS   = "1234"               # SSH Password
-  BASE_BOX  = "ubuntu-server24/ubuntu_24.04.02"      # Base box to use
-  HOST_FILE = "/vagrant/hosts.yaml" # File to store IP addresses
+  VM_DISK   = 25                              # Disk in GB
+  VM_NAME   = "server"                        # Base name for the servers
+  SSH_USER  = "ubuntu"                        # SSH Username
+  SSH_PASS  = "1234"                          # SSH Password
+  BASE_BOX  = "ubuntu-server24/ubuntu_24.04.02" # Base box to use
+  HOST_FILE = "/vagrant/hosts.yaml"           # File to store IP addresses
 
   # ===================================================================== 
   # 📦 BASE BOX
@@ -50,7 +50,7 @@ Vagrant.configure("2") do |config|
       node.vm.hostname = "#{VM_NAME}-#{i}"         # 🖥 HOSTNAME
 
       # 🌐 Bridged Network (Automatic)
-      node.vm.network "public_network", bridge: "en0: Wi-Fi"
+      node.vm.network "public_network", bridge: "Automatic"
 
       # 💽 STORAGE (requires vagrant-disksize plugin)
       node.disksize.size = "#{VM_DISK}GB"
