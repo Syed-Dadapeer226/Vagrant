@@ -122,8 +122,8 @@ P --> Q[🎉 Environment Ready Output]
 
 ```
 .
+├── VMware_Fusion/             # VMware provider configuration 🆕
 ├── Vagrantfile                # Infrastructure definition
-├── VMware_Fusion/Vagrantfile  # VMware provider configuration 🆕
 ├── vagrant.sh                 # One-click automation script
 ├── hosts.yaml                 # Auto-generated inventory
 └── .vagrant/                  # Vagrant internal state
