@@ -10,7 +10,7 @@
   <img src="https://img.shields.io/badge/Platform-Vagrant-blue" />
   <img src="https://img.shields.io/badge/Providers-VirtualBox%20%7C%20VMware-orange" />
   <img src="https://img.shields.io/badge/OS-Ubuntu-E95420" />
-  <img src="https://img.shields.io/badge/License-Apache 2.0-blue" />
+  <img src="https://img.shields.io/badge/License-GPL%203.0-blue" />
 </p>
 
 ---
