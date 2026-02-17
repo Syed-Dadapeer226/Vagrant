@@ -8,18 +8,24 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Build-Passing-brightgreen" />
   <img src="https://img.shields.io/badge/Platform-Vagrant-blue" />
-  <img src="https://img.shields.io/badge/Hypervisor-VirtualBox-orange" />
+  <img src="https://img.shields.io/badge/Providers-VirtualBox%20%7C%20VMware-orange" />
   <img src="https://img.shields.io/badge/OS-Ubuntu-E95420" />
-  <img src="https://img.shields.io/badge/License-MIT-blue" />
+  <img src="https://img.shields.io/badge/License-Apache 2.0-blue" />
 </p>
+
+---
+
+> 🆕 **New Feature: VMware Fusion / VMware Desktop provider support added.**  
+> Now you can run this DevOps lab on VirtualBox OR VMware environments.
 
 ---
 
 ## 📌 Table of Contents
 
 * [ Why This Project](#-why-this-project)
-* [ Features](#-features)
 * [ Architecture](#-architecture)
+* [ Features](#-features)
+* [ Supported Providers](#-supported-providers)
 * [ Project Structure](#-project-structure)
 * [ Prerequisites](#️-prerequisites)
 * [ Quick Start](#-quick-start)
@@ -41,7 +47,7 @@ You watch tutorials, read blogs, and everyone says:
 
 > “Practice on real servers!”
 
-But cloud servers cost money 💸  
+But... cloud servers cost money 💸  
 And setting up multiple Linux machines manually is painful 😓
 
 This project solves that.
@@ -51,19 +57,7 @@ This project solves that.
 ✅ Zero cloud cost  
 ✅ Safe for experimentation  
 
-Think of it as your **mini data center at home**.
-
----
-
-## ✨ Features
-
-✔ Create multiple Ubuntu servers automatically  
-✔ Configurable CPU, RAM, and disk  
-✔ Public network IP assignment  
-✔ Password + passwordless SSH  
-✔ Dynamic inventory generation (`hosts.yaml`)  
-✔ One-command lab deployment  
-✔ Reusable and scalable infrastructure  
+Think of it as your **mini DevOps Data Center at home**.
 
 ---
 
@@ -99,6 +93,28 @@ O --> P[📄 Update hosts.yaml Inventory]
 P --> Q[🎉 Environment Ready Output]
 
 ```
+---
+
+## ✨ Features
+
+✔ Create multiple Ubuntu servers automatically  
+✔ Configurable CPU, RAM, and disk  
+✔ Public network IP assignment  
+✔ Password + passwordless SSH  
+✔ Dynamic inventory generation (`hosts.yaml`)  
+✔ One-command lab deployment  
+✔ Reusable and scalable infrastructure  
+✔ Supports VirtualBox provider  
+✔ Supports VMware Fusion / VMware Desktop provider 🆕
+
+---
+
+## 🖥 Supported Providers
+
+| Provider                | Use Case                                   |
+| ----------------------- | -------------------------------------------|
+| VirtualBox              | Best for beginners and free setup          |
+| VMware Desktop / Fusion | Enterprise-like virtualization experience  |
 
 ---
 
@@ -106,10 +122,11 @@ P --> Q[🎉 Environment Ready Output]
 
 ```
 .
-├── Vagrantfile        # Infrastructure definition
-├── vagrant.sh         # One-click automation script
-├── hosts.yaml         # Auto-generated inventory
-└── .vagrant/          # Vagrant internal state
+├── Vagrantfile                # Infrastructure definition
+├── VMware_Fusion/Vagrantfile  # VMware provider configuration 🆕
+├── vagrant.sh                 # One-click automation script
+├── hosts.yaml                 # Auto-generated inventory
+└── .vagrant/                  # Vagrant internal state
 ```
 
 ---
@@ -119,13 +136,24 @@ P --> Q[🎉 Environment Ready Output]
 Install:
 
 * Vagrant
-* VirtualBox
+* One Hypervisor:  
+  * VirtualBox  
+        (OR)
+  * VMware Workstation / VMware Fusion
 
-Install required plugin:
+Install the required plugins:  
 
-```bash
-vagrant plugin install vagrant-disksize
-```
+  * Required Plugin (VirtualBox Users)
+
+  ```bash
+  vagrant plugin install vagrant-disksize
+  ```
+
+  * VMware Plugin (If Using VMware)
+
+  ```bash
+  vagrant plugin install vagrant_vmware_desktop
+  ```
 
 ---
 
@@ -278,6 +306,12 @@ Steps:
 2. Create feature branch
 3. Commit changes
 4. Open Pull Request
+
+---
+
+📝 Release Updates
+
+✅ feat: add VMware Fusion file for vmware_desktop provider explanation and support  
 
 ---
 
